@@ -16,7 +16,38 @@ router.post('/add', async (req, res) => {
   }
   console.log(newLink);
   await pool.query('INSERT INTO links set ?', [newLink]);
-  res.send('recived')
+  res.redirect('/links')
+});
+
+router.get('/', async (req, res) => {
+  const links = await pool.query('SELECT * FROM links');
+  console.log(links);
+  res.render('links/list.hbs', { links: links });
+})
+
+router.get('/delete/:id', async (req, res) => {
+  const {id} = req.params;
+  await pool.query('DELETE FROM links WHERE id = ?', [id]);
+  res.redirect('/links');
+});
+
+router.get('/edit/:id', async (req, res) => {
+  const { id } = req.params;
+  const link = await pool.query('SELECT * FROM links WHERE id = ?', [id]);
+  console.log(link[0]);
+  res.render('links/edit.hbs',{link: link[0]});
+});
+
+router.post('/edit/:id', async (req, res) => {
+  const { id } = req.params;
+  const { title, url, description} = req.body;
+  const updateLink = {
+    title,
+    url,
+    description
+  }
+  await pool.query('UPDATE links SET ? WHERE id = ?', [updateLink, id]);
+  res.redirect('/links');
 });
 
 module.exports = router;
